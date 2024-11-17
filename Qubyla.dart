@@ -1,4 +1,3 @@
-//geolocator: ^10.1.1, flutter_svg: ^2.0.10+1, flutter_qiblah: ^2.2.1
 // Automatic FlutterFlow imports
 import '/backend/backend.dart';
 import '/backend/schema/structs/index.dart';
@@ -12,8 +11,6 @@ import 'package:flutter/material.dart';
 // Begin custom widget code
 // DO NOT REMOVE OR MODIFY THE CODE ABOVE!
 
-import 'index.dart'; // Imports other custom widgets
-
 import 'package:flutter_qiblah/flutter_qiblah.dart';
 import 'package:geolocator/geolocator.dart';
 import 'dart:math';
@@ -25,10 +22,12 @@ class Qubyla extends StatefulWidget {
     super.key,
     this.width,
     this.height,
+    required this.isLightMode,
   });
 
   final double? width;
   final double? height;
+  final bool isLightMode;
 
   @override
   State<Qubyla> createState() => _QubylaState();
@@ -40,16 +39,6 @@ class _QubylaState extends State<Qubyla> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      theme: ThemeData(
-        primaryColor: const Color(0xff0c7b93),
-        primaryColorLight: const Color(0xff00a8cc),
-        primaryColorDark: const Color(0xff27496d),
-        colorScheme: ColorScheme.fromSwatch()
-            .copyWith(secondary: const Color(0xffecce6d)),
-      ),
-      darkTheme: ThemeData.dark().copyWith(
-          colorScheme: ColorScheme.fromSwatch()
-              .copyWith(secondary: const Color(0xffecce6d))),
       home: Scaffold(
         backgroundColor: FlutterFlowTheme.of(context).secondary,
         body: FutureBuilder(
@@ -65,7 +54,7 @@ class _QubylaState extends State<Qubyla> {
             }
 
             if (snapshot.data!) {
-              return const QiblahCompass();
+              return QiblahCompass(isLightMode: widget.isLightMode);
             } else {
               return Container();
             }
@@ -86,7 +75,11 @@ class LoadingIndicator extends StatelessWidget {
 }
 
 class QiblahCompass extends StatefulWidget {
-  const QiblahCompass({super.key});
+  const QiblahCompass({
+    super.key,
+    required this.isLightMode,
+  });
+  final bool isLightMode;
 
   @override
   _QiblahCompassState createState() => _QiblahCompassState();
@@ -114,9 +107,19 @@ class _QiblahCompassState extends State<QiblahCompass> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          fit: BoxFit.cover,
+          image: Image.asset(
+            widget.isLightMode == false
+                ? 'assets/images/darkBackPhoto.jpg'
+                : 'assets/images/lightBackPhoto.jpg',
+          ).image,
+        ),
+      ),
       alignment: Alignment.center,
       padding:
-          const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 8.0, top: 0.0),
+          const EdgeInsets.only(left: 8.0, right: 8.0, bottom: 25.0, top: 0.0),
       child: StreamBuilder(
         stream: stream,
         builder: (context, AsyncSnapshot<LocationStatus> snapshot) {
@@ -127,7 +130,7 @@ class _QiblahCompassState extends State<QiblahCompass> {
             switch (snapshot.data!.status) {
               case LocationPermission.always:
               case LocationPermission.whileInUse:
-                return QiblahCompassWidget();
+                return QiblahCompassWidget(isLightMode: widget.isLightMode);
 
               case LocationPermission.denied:
                 return LocationErrorWidget(
@@ -211,18 +214,25 @@ class LocationErrorWidget extends StatelessWidget {
 }
 
 class QiblahCompassWidget extends StatelessWidget {
-  final _compassSvg = SvgPicture.asset('assets/images/qubyla.svg');
-  // final _needleSvg = SvgPicture.asset(
-  //   'assets/images/line.svg',
-  //   fit: BoxFit.contain,
-  //   height: 300,
-  //   alignment: Alignment.center,
-  // );
-
-  QiblahCompassWidget({super.key});
+  QiblahCompassWidget({
+    super.key,
+    required this.isLightMode,
+  });
+  final bool isLightMode;
 
   @override
   Widget build(BuildContext context) {
+    // Choose appropriate image based on the theme
+    final compassImage =
+        isLightMode ? 'assets/images/darkC1.png' : 'assets/images/lightC1.png';
+    final dialImage =
+        isLightMode ? 'assets/images/darkD1.png' : 'assets/images/lightD1.png';
+    // final needleImage =
+    //     isLightMode ? 'assets/images/darkN.png' : 'assets/images/lightN.png';
+    final needleImage = 'assets/images/qublaN.png';
+    // final dialImage = 'assets/images/qublaD.png';
+    // final compassImage = 'assets/images/qublaC.png';
+    final Color colorText = isLightMode ? Colors.black : Colors.white;
     return StreamBuilder(
       stream: FlutterQiblah.qiblahStream,
       builder: (_, AsyncSnapshot<QiblahDirection> snapshot) {
@@ -232,27 +242,54 @@ class QiblahCompassWidget extends StatelessWidget {
 
         final qiblahDirection = snapshot.data!;
 
-        return Stack(
-          alignment: Alignment.center,
-          children: <Widget>[
-            Transform.rotate(
-              angle: (qiblahDirection.direction * (pi / 180) * -1),
-              child: _compassSvg,
-            ),
-            // Transform.rotate(
-            //   angle: (qiblahDirection.qiblah * (pi / 180) * -1),
-            //   alignment: Alignment.center,
-            //   child: _needleSvg,
-            // ),
-            Positioned(
-              bottom: 8,
-              child: Text(
-                "${qiblahDirection.offset.toStringAsFixed(3)}°",
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            )
-          ],
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            double size = constraints.maxWidth * 1.0;
+
+            return Stack(
+              alignment: Alignment.center,
+              children: <Widget>[
+                Transform.rotate(
+                  angle: (qiblahDirection.qiblah * (pi / 180) * -1),
+                  child: Image.asset(
+                    compassImage,
+                    fit: BoxFit.contain,
+                    height: size,
+                    alignment: Alignment.center,
+                  ),
+                ),
+                Transform.rotate(
+                  angle: (qiblahDirection.direction * (pi / 180) * -1),
+                  child: Image.asset(
+                    dialImage,
+                    fit: BoxFit.contain,
+                    height: size,
+                    alignment: Alignment.center,
+                  ),
+                ),
+                Transform.rotate(
+                  angle: (qiblahDirection.qiblah * (pi / 180) * -1),
+                  child: Image.asset(
+                    needleImage,
+                    fit: BoxFit.contain,
+                    height: size,
+                    alignment: Alignment.center,
+                  ),
+                ),
+                // Display the offset at the bottom
+                Positioned(
+                  bottom: 5, // Adjusted to fit nicely at the bottom
+                  child: Text(
+                    "${qiblahDirection.offset.toStringAsFixed(3)}°",
+                    style: TextStyle(
+                      color: colorText,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );
