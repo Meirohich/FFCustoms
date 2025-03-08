@@ -18,8 +18,8 @@ import 'package:stop_watch_timer/stop_watch_timer.dart';
 import 'package:circular_countdown_timer/circular_countdown_timer.dart';
 import 'package:kuntizbe/flutter_flow/flutter_flow_timer.dart';
 
-class CountDownTimer extends StatefulWidget {
-  const CountDownTimer({
+class KuntizbeCountDownTimer extends StatefulWidget {
+  const KuntizbeCountDownTimer({
     super.key,
     required this.width,
     required this.height,
@@ -55,10 +55,10 @@ class CountDownTimer extends StatefulWidget {
   // final String? ishaisani;
 
   @override
-  State<CountDownTimer> createState() => _CountDownTimerState();
+  State<KuntizbeCountDownTimer> createState() => _KuntizbeCountDownTimerState();
 }
 
-class _CountDownTimerState extends State<CountDownTimer> {
+class _KuntizbeCountDownTimerState extends State<KuntizbeCountDownTimer> {
   final CountDownController _controller = CountDownController();
   FlutterFlowTimerController timerController = FlutterFlowTimerController(
     StopWatchTimer(
@@ -98,7 +98,7 @@ class _CountDownTimerState extends State<CountDownTimer> {
   }
 
   @override
-  void didUpdateWidget(CountDownTimer oldWidget) {
+  void didUpdateWidget(KuntizbeCountDownTimer oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.tan != oldWidget.tan || widget.quptan != oldWidget.quptan) {
       setState(() {
